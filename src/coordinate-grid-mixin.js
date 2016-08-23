@@ -286,6 +286,10 @@ dc.coordinateGridMixin = function (_chart) {
         return _chart;
     };
 
+    _chart.getX = function () {
+      return _x;
+    }
+
     _chart.xOriginalDomain = function () {
         return _xOriginalDomain;
     };
@@ -1032,6 +1036,7 @@ dc.coordinateGridMixin = function (_chart) {
     };
 
     _chart._brushing = function () {
+        debugger;
         var extent = _chart.extendBrush();
 
         _chart.redrawBrush(_g, false);
@@ -1039,6 +1044,13 @@ dc.coordinateGridMixin = function (_chart) {
         if (_chart.brushIsEmpty(extent)) {
             dc.events.trigger(function () {
                 _chart.filter(null);
+                _chart.redrawGroup();
+            }, dc.constants.EVENT_DELAY);
+        } else if (_chart.isOrdinal()) {
+            var categoricalFilter = dc.filters.CategoricalFilter(extent[0], extent[1], _x);
+
+            dc.events.trigger(function () {
+                _chart.replaceFilter(categoricalFilter);
                 _chart.redrawGroup();
             }, dc.constants.EVENT_DELAY);
         } else {
@@ -1151,7 +1163,7 @@ dc.coordinateGridMixin = function (_chart) {
 
     function drawChart (render) {
         if (_chart.isOrdinal()) {
-            _brushOn = false;
+            // _brushOn = false;
         }
 
         prepareXAxis(_chart.g(), render);

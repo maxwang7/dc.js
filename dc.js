@@ -888,6 +888,18 @@ dc.filters.RangedFilter = function (low, high) {
     return range;
 };
 
+dc.filters.CategoricalFilter = function (low, high, xScale) {
+  var range = new Array(low, high);
+  range.isFiltered = function (value) {
+      debugger;
+      var scaledValue = xScale(value);
+      return scaledValue >= this[0] && scaledValue < this[1];
+  }
+  range.filterType = 'CategoricalFilter';
+
+  return range;
+}
+
 /**
  * TwoDimensionalFilter is a filter which accepts a single two-dimensional value.  It is used by the
  * {@link dc.heatMap heat map chart} to include particular cells as they are clicked.  (Rows and columns are
@@ -2993,6 +3005,10 @@ dc.coordinateGridMixin = function (_chart) {
         return _chart;
     };
 
+    _chart.getX = function () {
+      return _x;
+    }
+
     _chart.xOriginalDomain = function () {
         return _xOriginalDomain;
     };
@@ -3739,6 +3755,7 @@ dc.coordinateGridMixin = function (_chart) {
     };
 
     _chart._brushing = function () {
+        debugger;
         var extent = _chart.extendBrush();
 
         _chart.redrawBrush(_g, false);
@@ -3746,6 +3763,13 @@ dc.coordinateGridMixin = function (_chart) {
         if (_chart.brushIsEmpty(extent)) {
             dc.events.trigger(function () {
                 _chart.filter(null);
+                _chart.redrawGroup();
+            }, dc.constants.EVENT_DELAY);
+        } else if (_chart.isOrdinal()) {
+            var categoricalFilter = dc.filters.CategoricalFilter(extent[0], extent[1], _x);
+
+            dc.events.trigger(function () {
+                _chart.replaceFilter(categoricalFilter);
                 _chart.redrawGroup();
             }, dc.constants.EVENT_DELAY);
         } else {
@@ -3858,7 +3882,7 @@ dc.coordinateGridMixin = function (_chart) {
 
     function drawChart (render) {
         if (_chart.isOrdinal()) {
-            _brushOn = false;
+            // _brushOn = false;
         }
 
         prepareXAxis(_chart.g(), render);
@@ -5529,31 +5553,40 @@ dc.barChart = function (parent, chartGroup) {
     _chart.fadeDeselectedArea = function () {
         var bars = _chart.chartBodyG().selectAll('rect.bar');
         var extent = _chart.brush().extent();
+        debugger;
 
-        if (_chart.isOrdinal()) {
-            if (_chart.hasFilter()) {
-                bars.classed(dc.constants.SELECTED_CLASS, function (d) {
-                    return _chart.hasFilter(d.x);
-                });
-                bars.classed(dc.constants.DESELECTED_CLASS, function (d) {
-                    return !_chart.hasFilter(d.x);
-                });
-            } else {
-                bars.classed(dc.constants.SELECTED_CLASS, false);
-                bars.classed(dc.constants.DESELECTED_CLASS, false);
-            }
-        } else {
+        // if (_chart.isOrdinal()) {
+        //     if (_chart.hasFilter()) {
+        //         bars.classed(dc.constants.SELECTED_CLASS, function (d) {
+        //             debugger;
+        //             return _chart.hasFilter(d.x);
+        //         });
+        //         bars.classed(dc.constants.DESELECTED_CLASS, function (d) {
+        //             debugger;
+        //             return !_chart.hasFilter(d.x);
+        //         });
+        //     } else {
+        //         bars.classed(dc.constants.SELECTED_CLASS, false);
+        //         bars.classed(dc.constants.DESELECTED_CLASS, false);
+        //     }
+        // } else {
+        // var xCopy = _x;
             if (!_chart.brushIsEmpty(extent)) {
                 var start = extent[0];
                 var end = extent[1];
 
                 bars.classed(dc.constants.DESELECTED_CLASS, function (d) {
-                    return d.x < start || d.x >= end;
+                    if (_chart.isOrdinal()) {
+                      var scaledX = _chart.getX()(d.x);
+                      return scaledX < start || scaledX >= end;
+                    } else {
+                      return d.x < start || d.x >= end;
+                    }
                 });
             } else {
                 bars.classed(dc.constants.DESELECTED_CLASS, false);
             }
-        }
+        // }
     };
 
     /**

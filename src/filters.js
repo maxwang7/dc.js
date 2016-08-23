@@ -42,6 +42,18 @@ dc.filters.RangedFilter = function (low, high) {
     return range;
 };
 
+dc.filters.CategoricalFilter = function (low, high, xScale) {
+  var range = new Array(low, high);
+  range.isFiltered = function (value) {
+      debugger;
+      var scaledValue = xScale(value);
+      return scaledValue >= this[0] && scaledValue < this[1];
+  }
+  range.filterType = 'CategoricalFilter';
+
+  return range;
+}
+
 /**
  * TwoDimensionalFilter is a filter which accepts a single two-dimensional value.  It is used by the
  * {@link dc.heatMap heat map chart} to include particular cells as they are clicked.  (Rows and columns are

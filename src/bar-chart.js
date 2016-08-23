@@ -199,31 +199,40 @@ dc.barChart = function (parent, chartGroup) {
     _chart.fadeDeselectedArea = function () {
         var bars = _chart.chartBodyG().selectAll('rect.bar');
         var extent = _chart.brush().extent();
+        debugger;
 
-        if (_chart.isOrdinal()) {
-            if (_chart.hasFilter()) {
-                bars.classed(dc.constants.SELECTED_CLASS, function (d) {
-                    return _chart.hasFilter(d.x);
-                });
-                bars.classed(dc.constants.DESELECTED_CLASS, function (d) {
-                    return !_chart.hasFilter(d.x);
-                });
-            } else {
-                bars.classed(dc.constants.SELECTED_CLASS, false);
-                bars.classed(dc.constants.DESELECTED_CLASS, false);
-            }
-        } else {
+        // if (_chart.isOrdinal()) {
+        //     if (_chart.hasFilter()) {
+        //         bars.classed(dc.constants.SELECTED_CLASS, function (d) {
+        //             debugger;
+        //             return _chart.hasFilter(d.x);
+        //         });
+        //         bars.classed(dc.constants.DESELECTED_CLASS, function (d) {
+        //             debugger;
+        //             return !_chart.hasFilter(d.x);
+        //         });
+        //     } else {
+        //         bars.classed(dc.constants.SELECTED_CLASS, false);
+        //         bars.classed(dc.constants.DESELECTED_CLASS, false);
+        //     }
+        // } else {
+        // var xCopy = _x;
             if (!_chart.brushIsEmpty(extent)) {
                 var start = extent[0];
                 var end = extent[1];
 
                 bars.classed(dc.constants.DESELECTED_CLASS, function (d) {
-                    return d.x < start || d.x >= end;
+                    if (_chart.isOrdinal()) {
+                      var scaledX = _chart.getX()(d.x);
+                      return scaledX < start || scaledX >= end;
+                    } else {
+                      return d.x < start || d.x >= end;
+                    }
                 });
             } else {
                 bars.classed(dc.constants.DESELECTED_CLASS, false);
             }
-        }
+        // }
     };
 
     /**
